@@ -33,7 +33,7 @@ function seed() {
     apps = [
       { name: 'GGPay', url: 'http://localhost:4000', color: '#1a73e8' },
       { name: 'PayTwin', url: 'http://localhost:4001', color: '#0e4aa1' },
-      { name: 'PlumPay', url: 'http://localhost:4002', color: '#5f259f' },
+      { name: 'PhonePayy', url: 'http://localhost:4002', color: '#5f259f' },
     ];
   }
   return {
