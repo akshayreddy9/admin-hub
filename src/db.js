@@ -26,9 +26,9 @@ const id = (prefix) => prefix + '_' + crypto.randomBytes(6).toString('hex');
 const token = () => crypto.randomBytes(24).toString('hex');
 
 // First run: one hub admin and the apps listed in HUB_APPS (or the two local defaults).
+const envApps = () => { try { const a = JSON.parse(process.env.HUB_APPS || ''); return Array.isArray(a) ? a : null; } catch { return null; } };
 function seed() {
-  let apps;
-  try { apps = JSON.parse(process.env.HUB_APPS || ''); } catch { apps = null; }
+  let apps = envApps();
   if (!Array.isArray(apps)) {
     apps = [
       { name: 'GGPay', url: 'http://localhost:4000', color: '#1a73e8' },
@@ -52,7 +52,8 @@ async function load() {
       mongo = client.db(process.env.MONGODB_DB || 'adminhub').collection('state');
       const doc = await mongo.findOne({ _id: 'hub' });
       db = doc ? JSON.parse(doc.json) : seed();
-      if (!doc) await flush();
+      syncApps();
+      await flush();
       console.log('Storage: MongoDB');
       return db;
     } catch (e) {
@@ -61,9 +62,24 @@ async function load() {
     }
   }
   db = fs.existsSync(FILE) ? JSON.parse(fs.readFileSync(FILE, 'utf8')) : seed();
+  syncApps();
   flush();
   console.log('Storage: ' + FILE);
   return db;
+}
+
+// Every start: apps named in HUB_APPS get their URL updated (or are added) so a changed
+// Render address in render.yaml reaches an existing hub. Apps added in the hub page are kept.
+function syncApps() {
+  const list = envApps();
+  if (!list) return;
+  list.forEach((e) => {
+    const url = String(e.url || '').replace(/\/+$/, '');
+    if (!e.name || !url) return;
+    const a = db.apps.find((x) => x.name.toLowerCase() === String(e.name).toLowerCase());
+    if (!a) db.apps.push({ id: id('app'), name: e.name, url, color: e.color || '#0e4aa1', order: db.apps.length + 1, appToken: '', appAdmin: '', createdAt: Date.now() });
+    else if (a.url !== url) { console.log(`HUB_APPS: ${a.name} URL ${a.url} -> ${url}`); a.url = url; a.appToken = ''; a.appAdmin = ''; }
+  });
 }
 
 const get = () => db;
