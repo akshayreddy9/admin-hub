@@ -1,0 +1,23 @@
+# Render Blueprint: the Admin Hub as a free web service.
+services:
+  - type: web
+    name: admin-hub
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node src/index.js
+    healthCheckPath: /hub/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Same MongoDB Atlas cluster is fine: the hub uses its own database.
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: adminhub
+      # Password for the first hub admin (username "admin") on a fresh database.
+      - key: HUB_ADMIN_PASSWORD
+        sync: false
+      # Apps to list on first start. Add more later from the hub itself.
+      - key: HUB_APPS
+        value: '[{"name":"GGPay","url":"https://ggpay.onrender.com","color":"#1a73e8"},{"name":"PayTwin","url":"https://paytwin.onrender.com","color":"#0e4aa1"}]'
