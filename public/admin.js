@@ -255,8 +255,12 @@ async function enterApp(a, c, page) {
     S.schema = inferSchema((await api('GET', '/admin/settings')).settings);
   }
   connectSocket();
-  const target = page && PAGES[page] ? page : 'dashboard';
+  const target = page && (isEmbed() ? S.schema.nav.some((n) => n[0] === page) : PAGES[page]) ? page : 'dashboard';
   if (location.hash.slice(1) === target) { S.route = target; render(); } else location.hash = target;
+}
+function renderEmbed(page) {
+  const src = `${S.app.url}${S.schema.embedPath || '/admin/'}?embed=1#${S.route}&t=${encodeURIComponent(S.app.token)}`;
+  page.innerHTML = `<iframe class="embed-frame" title="${esc(S.app.name)} admin" src="${esc(src)}"></iframe>`;
 }
 function leaveApp() {
   S.app = null; S.schema = null;
@@ -273,6 +277,9 @@ const NAV = [
   ['settings', '⚙️', 'App settings'], ['audit', '📜', 'Audit logs'], ['admins', '🛡️', 'Admins'],
 ];
 const HUB_NAV = [['apps', '🧩', 'All apps'], ['hubadmins', '🛡️', 'Hub admins'], ['hublog', '📜', 'Hub activity']];
+// Apps whose schema says panel: 'embed' bring their own admin pages; the hub shows them in a frame.
+const isEmbed = () => !!(S.schema && S.schema.panel === 'embed');
+const appNav = () => (isEmbed() ? S.schema.nav : NAV);
 function renderNav(openTickets) {
   const sw = $('#appSwitch');
   $('#live').style.visibility = S.app ? '' : 'hidden';
@@ -283,7 +290,7 @@ function renderNav(openTickets) {
       <div class="app-url">${esc(S.app.url)}<br>signed in as ${esc(S.app.appAdmin || 'admin')}</div>`;
     $('#appSelect').onchange = (e) => openApp(e.target.value, S.route);
     $('#allApps').onclick = (e) => { e.preventDefault(); leaveApp(); };
-    $('#nav').innerHTML = NAV.map(([id, icon, label]) => `<a href="#${id}" class="${S.route === id ? 'active' : ''}">${icon} ${label}${id === 'support' && openTickets ? `<span class="badge">${openTickets}</span>` : ''}</a>`).join('');
+    $('#nav').innerHTML = appNav().map(([id, icon, label]) => `<a href="#${id}" class="${S.route === id ? 'active' : ''}">${icon} ${label}${id === 'support' && openTickets ? `<span class="badge">${openTickets}</span>` : ''}</a>`).join('');
   } else {
     sw.innerHTML = '';
     $('#nav').innerHTML = HUB_NAV.map(([id, icon, label]) => `<a href="#${id}" class="${S.route === id ? 'active' : ''}">${icon} ${label}</a>`).join('');
@@ -302,13 +309,14 @@ async function loadUsers() {
 const userById = (id) => S.users.find((u) => u.id === id);
 
 async function render() {
-  const list = S.app ? NAV : HUB_NAV;
+  const list = S.app ? appNav() : HUB_NAV;
   const pages = S.app ? PAGES : HUB_PAGES;
   const item = list.find((n) => n[0] === S.route) || list[0];
   S.route = item[0];
   $('#pageTitle').innerHTML = S.app ? `<span class="app-chip" style="background:${esc(S.app.color)}">${esc(S.app.name)}</span> ${esc(item[2])}` : esc(item[2]);
   renderNav(S.openTickets);
   const page = $('#page');
+  if (S.app && isEmbed()) { renderEmbed(page); return; }
   try { await pages[S.route](page); } catch (e) { page.innerHTML = `<div class="card">Failed to load: ${esc(e.message)}</div>`; }
 }
 
@@ -960,7 +968,7 @@ HUB_PAGES.apps = async (page) => {
       row.storage = st.storage;
       if (st.stats) {
         row.stats = st.stats;
-        card.querySelector('[data-stats]').innerHTML = [['Users', st.stats.users], ['Transactions', st.stats.transactions], ['Today', inr(st.stats.volumeToday)], ['Open tickets', st.stats.openTickets]]
+        card.querySelector('[data-stats]').innerHTML = (st.stats.summary || [['Users', st.stats.users], ['Transactions', st.stats.transactions], ['Today', inr(st.stats.volumeToday)], ['Open tickets', st.stats.openTickets]])
           .map(([l, v]) => `<div><small>${l}</small><b>${v}</b></div>`).join('') + (st.stats.maintenance ? '<div class="maint-flag">Maintenance ON</div>' : '');
         const m = card.querySelector('[data-maint]');
         m.hidden = false;

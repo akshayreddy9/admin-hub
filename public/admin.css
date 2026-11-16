@@ -172,3 +172,6 @@ a.brand { color: var(--text); text-decoration: none; }
 .add-card span { font-size: 34px; line-height: 1; }
 .add-card small { color: var(--muted); font-weight: 400; }
 .add-card:hover { border-color: var(--blue); background: var(--blue-soft); }
+
+/* Embedded app admin (apps with their own admin pages, e.g. Gmai) */
+.embed-frame { width: 100%; height: calc(100vh - 110px); border: 0; border-radius: 14px; background: #fff; display: block; }

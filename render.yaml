@@ -20,4 +20,4 @@ services:
         sync: false
       # Apps to list on first start. Add more later from the hub itself.
       - key: HUB_APPS
-        value: '[{"name":"GGPay","url":"https://ggpay.onrender.com","color":"#1a73e8"},{"name":"PayTwin","url":"https://paytwin-edg0.onrender.com","color":"#0e4aa1"},{"name":"PhonePayy","url":"https://phonepayy.onrender.com","color":"#5f259f"}]'
+        value: '[{"name":"GGPay","url":"https://ggpay.onrender.com","color":"#1a73e8"},{"name":"PayTwin","url":"https://paytwin-edg0.onrender.com","color":"#0e4aa1"},{"name":"PhonePayy","url":"https://phonepayy.onrender.com","color":"#5f259f"},{"name":"Gmai","url":"https://gmai.onrender.com","color":"#d93025"}]'

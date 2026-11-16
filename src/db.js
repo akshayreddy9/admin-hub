@@ -34,6 +34,7 @@ function seed() {
       { name: 'GGPay', url: 'http://localhost:4000', color: '#1a73e8' },
       { name: 'PayTwin', url: 'http://localhost:4001', color: '#0e4aa1' },
       { name: 'PhonePayy', url: 'http://localhost:4002', color: '#5f259f' },
+      { name: 'Gmai', url: 'http://localhost:4003', color: '#d93025' },
     ];
   }
   return {

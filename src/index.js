@@ -108,8 +108,8 @@ app.get('/hub/apps/:id/status', route(async (req) => {
   if (a.appToken) {
     const s = await callApp(a, 'GET', '/admin/stats');
     if (s.status === 200) {
-      const { users, transactions, failed, volumeToday, totalBalance, openTickets, settings } = s.data;
-      out.stats = { users, transactions, failed, volumeToday, totalBalance, openTickets, maintenance: !!(settings && settings.maintenanceMode) };
+      const { users, transactions, failed, volumeToday, totalBalance, openTickets, settings, summary } = s.data;
+      out.stats = { users, transactions, failed, volumeToday, totalBalance, openTickets, summary, maintenance: !!(settings && settings.maintenanceMode) };
     } else if (s.status === 401) { a.appToken = ''; }
   }
   return out;
